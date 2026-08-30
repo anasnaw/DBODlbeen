@@ -112,6 +112,7 @@ function doPost(e) {
     if (action === "sync") return json_(sync_(payload));
     if (action === "login") return json_(login_(payload));
     if (action === "uploadFile") return json_(uploadFile_(payload));
+    if (action === "downloadFile") return json_(downloadFile_(payload));
     if (action === "deleteFile") return json_(deleteFile_(payload));
 
     return json_({ok:false,error:"Unknown action"});
@@ -275,6 +276,28 @@ function uploadFile_(payload) {
       url: file.getUrl()
     }
   };
+}
+
+function downloadFile_(payload) {
+  const id = String(payload.driveId || "");
+  if (!id) throw new Error("No Google Drive file was selected.");
+
+  try {
+    const file = DriveApp.getFileById(id);
+    const blob = file.getBlob();
+    const bytes = blob.getBytes();
+    return {
+      ok: true,
+      file: {
+        name: file.getName() || blob.getName() || "DBO-file",
+        type: file.getMimeType() || blob.getContentType() || "application/octet-stream",
+        size: bytes.length,
+        base64: Utilities.base64Encode(bytes)
+      }
+    };
+  } catch (e) {
+    throw new Error("Could not download the original Google Drive file.");
+  }
 }
 
 function deleteFile_(payload) {
