@@ -1,0 +1,16 @@
+DBO CLOUD — START HERE
+
+1. Open google-apps-script/Code.gs in a new Google Apps Script project.
+2. Run setupDBO() once and copy apiSecret.
+3. Deploy Apps Script as Web App (Execute as Me / Access: Anyone) and copy the /exec URL.
+4. Deploy this folder to Cloudflare Pages using GitHub:
+   - Output directory: public
+   - The functions/api.js file is the backend proxy.
+5. In Cloudflare Pages → Settings → Variables and Secrets add:
+   DBO_APPS_SCRIPT_URL = your /exec URL
+   DBO_API_SECRET = your apiSecret
+6. Redeploy and open your *.pages.dev address.
+7. Export your current DBO JSON backup and import it into the cloud version.
+8. Re-upload any old browser-only attachments so they are stored in Google Drive.
+
+Full instructions: README_FIRST.md
