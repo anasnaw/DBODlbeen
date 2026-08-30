@@ -636,7 +636,7 @@ function openAssetModal(){const f=document.getElementById("assetForm");if(!f)ret
 function readFileData(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
 document.getElementById("assetForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,fd=new FormData(f),file=f.elements.assetFile.files[0];if(!file){toast("Choose a file first");return}const saveBtn=document.getElementById("assetSaveBtn");saveBtn.disabled=true;saveBtn.textContent="Saving…";try{const id=uid(),name=String(fd.get("name")||"").trim(),category=fd.get("category")||"Other";if(!name){toast("Asset name is required");return}const stored=await storeFile(file,"asset",id,category);if(!stored)return;const preview=file.type.startsWith("image/")?await compressImage(file,1200,.82):"";const obj={id,name,category,brand:String(fd.get("brand")||"").trim(),fileName:stored.name||file.name,mime:stored.type||file.type||"application/octet-stream",fileKey:stored.key||"",driveUrl:stored.url||"",fileSize:stored.size||file.size,data:"",preview,notes:String(fd.get("notes")||"").trim(),createdAt:Date.now()};state.assets.push(obj);closeModal("assetModal");saveState();toast("Brand asset saved in original quality")}catch(err){console.error(err);toast("Could not save this asset")}finally{saveBtn.disabled=false;saveBtn.textContent="Save Asset"}});
 function deleteBrandAsset(id){if(confirm("Delete this brand asset?")){state.assets=state.assets.filter(a=>a.id!==id);saveState();toast("Brand asset deleted")}}
-async function downloadLibraryAsset(kind,id){let source="",name="asset";if(kind==="brand"){const a=(state.assets||[]).find(x=>x.id===id);if(a?.fileKey){await downloadStoredFile(a.fileKey);return}if(a){source=a.data||a.preview||"";name=a.fileName||a.name||name}}else if(kind==="content"){const c=(state.contents||[]).find(x=>x.id===id);if(c){source=c.thumbnail||"";name=(c.title||"content-thumbnail")+".jpg"}}else if(kind==="script"){const s=(state.scripts||[]).find(x=>x.id===id);if(s){source=s.visual||"";name=(s.title||"script-visual")+".jpg"}}if(!source){toast("This asset is not available for download");return}const safeName=String(name).replace(/[\\/:*?"<>|]+/g,"_");const link=document.createElement("a");link.href=source;link.download=safeName;link.rel="noopener";document.body.appendChild(link);link.click();link.remove();toast("Download started")}
+async function downloadLibraryAsset(kind,id){let source="",name="asset";if(kind==="brand"){const a=(state.assets||[]).find(x=>x.id===id);if(a?.fileKey){await downloadStoredFile(a.fileKey);return}if(a){toast("Re-upload this asset once to download the exact original file");return}}else if(kind==="content"){const c=(state.contents||[]).find(x=>x.id===id);if(c){source=c.thumbnail||"";name=(c.title||"content-thumbnail")+".jpg"}}else if(kind==="script"){const s=(state.scripts||[]).find(x=>x.id===id);if(s){source=s.visual||"";name=(s.title||"script-visual")+".jpg"}}if(!source){toast("This asset is not available for download");return}const safeName=String(name).replace(/[\\/:*?"<>|]+/g,"_");const link=document.createElement("a");link.href=source;link.download=safeName;link.rel="noopener";document.body.appendChild(link);link.click();link.remove();toast("Download started")}
 
 function openContentModal(schedule=false){const f=document.getElementById("contentForm");f.reset();f.elements.id.value="";f.elements.brand.value=pageNames()[0]||state.profile.name||"Dlbeen Group";f.elements.status.value=schedule?"Scheduled":"Idea";f.elements.publishTime.value="19:00";document.getElementById("contentModalTitle").textContent=schedule?"Schedule Content":"Add Content";openModal("contentModal")}
 async function compressImage(file,max=900,quality=.78){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{let w=im.width,h=im.height;if(w>h&&w>max){h=Math.round(h*max/w);w=max}else if(h>max){w=Math.round(w*max/h);h=max}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);resolve(c.toDataURL("image/jpeg",quality))};im.onerror=reject;im.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
@@ -1721,7 +1721,26 @@ if(bootUser){
   };
   downloadStoredFile=async function(key){
     const id=dboDriveId(key);
-    if(id){window.open("https://drive.google.com/uc?export=download&id="+encodeURIComponent(id),"_blank","noopener");return}
+    if(id){
+      try{
+        toast("Preparing the original file...");
+        const res=await dboCloudCall("downloadFile",{driveId:id});
+        const f=res.file||{};
+        if(!f.base64)throw new Error("The original file data was not returned.");
+        const raw=atob(f.base64),bytes=new Uint8Array(raw.length);
+        for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+        const blob=new Blob([bytes],{type:f.type||"application/octet-stream"});
+        const url=URL.createObjectURL(blob),a=document.createElement("a");
+        a.href=url;
+        a.download=String(f.name||"DBO-file").replace(/[\\/:*?"<>|]+/g,"_");
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),10000);
+        toast("Original file downloaded — no conversion applied");
+      }catch(err){dboShowCloudError(err);toast("Could not download the original file")}
+      return;
+    }
     return dboLocalDownloadFile(key);
   };
   removeStoredFile=async function(key){
