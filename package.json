@@ -1,0 +1,18 @@
+{
+  "name": "dbo-dlbeen-brand-management-os",
+  "version": "5.0.0",
+  "description": "DBO \u00b7 Dlbeen Brand Management OS \u2014 online multi-user server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,39 @@
+DBO v5 - Online Edition (18 Oct 2026)
+
+ONLINE & MULTI-USER
+- DBO now runs on a server: everyone uses the same web address and the same live data.
+- Changes appear for other users within a few seconds, with no reload.
+- If two people edit the same item at once, the second person is told who changed it and sees the newer version (nothing is silently overwritten).
+- Attachments (contracts, event files, reports, brand assets) are stored on the server and open for every user.
+- Every login, edit, approval, deletion and user change is recorded in the Activity Log.
+
+LOGIN & USERS
+- Sign-in screen. Login is required every time DBO is opened, and it locks after 30 minutes without activity.
+- Account menu (your initials, top right): change my password, switch user, log out.
+- Three roles, enforced on the server:
+  - User: view, add and edit. Cannot approve or delete.
+  - Manager: plus approvals, delete and company settings.
+  - Super User: plus Users & Access (add, edit, disable or delete users, change any password), backup / restore / reset and the activity log.
+- Content must be approved by a manager before a normal user can schedule or publish it.
+  If a user edits approved content, it goes back to Review.
+
+BUG FIXES
+1. Copy Caption / Copy Hashtags / Copy Script failed when the text contained an apostrophe.
+2. Links starting with "javascript:" were clickable (security). Only http(s), mailto and tel links are allowed now.
+3. "Today" was calculated in UTC, so dates were wrong between 00:00 and 03:00 Baghdad time.
+4. Editing a content item or script could reuse a file you had picked earlier for another item.
+5. Tasks could not be moved on phones (drag and drop is mouse-only). Each task card now has a status selector.
+6. The Reports archive was sorted incorrectly.
+7. Transparent PNG logos got a black background in the Asset Library.
+8. A notification disappeared too early when two messages came quickly one after another.
+9. The calendar silently hid posts after 4 per day. It now shows "+N more".
+10. Upcoming Schedule on the Dashboard listed past dates.
+11. A new version was saved even when nothing had changed. Versions and approvals now record who made them.
+12. Files attached to events and reports could not be removed (managers can remove them now).
+13. The Escape key now closes pop-ups.
+- Updated server libraries to versions with no known vulnerabilities.
+
+MOVING YOUR DATA
+In the old single-file DBO, use Company & Backup > Export JSON. Then sign in to the online DBO as super user and use Company & Backup > Import JSON.
+
+See server/README.md for deployment.
